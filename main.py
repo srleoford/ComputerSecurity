@@ -24,6 +24,7 @@ def store_shadow_file_locally(filename):
         if line.__contains__('crack'):
             each_text_line = re.split(r':', line)
             pw_dictionary.update({each_text_line[0]: each_text_line[1]})
+    print(f"I'm done!")
     return pw_dictionary
 
 
