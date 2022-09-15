@@ -1,8 +1,9 @@
 # This is a sample Python script.
 import crypt
+import pwd
+import getpass
 import os
 import re
-import hashlib
 
 
 # Idea: Read each line of the file and put it in a dictionary and check
@@ -57,10 +58,8 @@ def crack_passwords(dictionary):
         tsh_format = re.split(r'\$', user['hashPW'])
         password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
         test_pw = crypt.crypt(f"123456", password_info['salt'])
-        # hashed = hashlib.md5(b"123456")
-        # test_pw = hashed.hexdigest()
 
-        print(f"Username: {username}, user's pw: {password_info['hash']}, test's pw: {test_pw}")
+        print(f"Username: {username}, user's pw: {password_info}, test's pw: {test_pw}")
         break
 
 
