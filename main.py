@@ -1,8 +1,8 @@
 # This is a sample Python script.
-
+import crypt
 import os
 import re
-from hashlib import md5
+import hashlib
 
 
 # Idea: Read each line of the file and put it in a dictionary and check
@@ -16,6 +16,7 @@ def store_shadow_file_locally(filename):
     # File is valid. Open the file and creat dictionary
     shadow_file = open(filename)
     pw_dictionary = dict()
+    count = 0;
 
     # For every line in the file, split into attributes, insert into a dictionary
     # instead of reading for optimization, and return that dictionary
@@ -23,7 +24,9 @@ def store_shadow_file_locally(filename):
         # Check to see if there is a valid user, then split and insert into dictionary
         if line.__contains__('crack'):
             each_text_line = re.split(r':', line)
-            pw_dictionary.update({each_text_line[0]: each_text_line[1]})
+            pw_dictionary.update({f"user{count}": {"username": each_text_line[0], "hashPW": each_text_line[1], "last_PW_changed": each_text_line[2],
+                                  "min_PW_age": each_text_line[3], "max_PW_age": each_text_line[4], "warn_period": each_text_line[5]}})
+            count += 1
     return pw_dictionary
 
 
@@ -48,12 +51,16 @@ def store_passwords(filename):
 
 
 def crack_passwords(dictionary):
-    for cred in dictionary:
-        username = cred
-        hashed_pw = dictionary[cred]
-        h = md5(b"123456")
-        test_pw = h.hexdigest()
-        print(f"Username: {username}, user's pw: {hashed_pw}, test's pw: {test_pw}")
+    for account in dictionary:
+        user = dictionary[account]
+        username = user['username']
+        tsh_format = re.split(r'\$', user['hashPW'])
+        password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
+        test_pw = crypt.crypt(f"123456", password_info['salt'])
+        # hashed = hashlib.md5(b"123456")
+        # test_pw = hashed.hexdigest()
+
+        print(f"Username: {username}, user's pw: {password_info['hash']}, test's pw: {test_pw}")
         break
 
 
@@ -63,7 +70,7 @@ def compare_passwords(dictionary, db):
         for cred in dictionary:
             username = cred
             hashed_pw = dictionary[cred]
-            h = md5(password.encode('utf8'))
+            h = crypt.crypt("123456", crypt.METHOD_MD5)
             test_pw = h.hexdigest()
             if test_pw == hashed_pw:
                 result_dict.update({f'{username}': f'{test_pw}'})
@@ -76,7 +83,7 @@ if __name__ == '__main__':
     # print(f"Enter password file name:")
     # response = input();
     shadow_dict = store_shadow_file_locally("Assignment 1 for CS 4351/Problem 1/shadowfile.txt")
-    common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
-    common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
-    result = compare_passwords(shadow_dict, common_db)
-    print(result)
+    # common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
+    # common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
+    # result = compare_passwords(shadow_dict, common_db)
+    crack_passwords(shadow_dict)
