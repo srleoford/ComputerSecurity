@@ -1,9 +1,7 @@
 # This is a sample Python script.
-import crypt
-import pwd
-import getpass
 import os
 import re
+from passlib.hash import md5_crypt
 
 
 # Idea: Read each line of the file and put it in a dictionary and check
@@ -17,7 +15,7 @@ def store_shadow_file_locally(filename):
     # File is valid. Open the file and creat dictionary
     shadow_file = open(filename)
     pw_dictionary = dict()
-    count = 0;
+    count = 0
 
     # For every line in the file, split into attributes, insert into a dictionary
     # instead of reading for optimization, and return that dictionary
@@ -50,17 +48,29 @@ def store_passwords(filename):
         pw_list.append(passwd[0])
     return pw_list
 
-
-def crack_passwords(dictionary):
-    for account in dictionary:
-        user = dictionary[account]
-        username = user['username']
-        tsh_format = re.split(r'\$', user['hashPW'])
-        password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
-        test_pw = crypt.crypt(f"123456", password_info['salt'])
-
-        print(f"Username: {username}, user's pw: {password_info}, test's pw: {test_pw}")
-        break
+# Idea: Grab each test password and compare it against the password file.
+# If a password was cracked, remove it from the password file and store it
+# in a cracked dictionary. Furthermore, once a password is cracked, check if the
+# password was used again in the rest of the password file to remove duplicates
+def crack_passwords(dictionary, test_db):
+    cracked = dict()
+    # Take each password and brute force against the password file
+    for test_pw in test_db:
+        # Each account is a dictionary with each attribute for each account (username, encrypted PW, etc.)
+        # Take encrypted password and split it into type, salt, and hash for use into the MD5 encryption
+        for account in dictionary:
+            user = dictionary[account]
+            username = user['username']
+            tsh_format = re.split(r'\$', user['hashPW'])
+            password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
+            test_hash = md5_crypt.using(salt=password_info['salt']).hash(test_pw)
+            # print(f"Testing password {test_pw} on {username} by comparing {test_hash} and {user['hashPW']}...")
+            if test_hash == user['hashPW']:
+                print(f"Account cracked! {username}:{test_pw}")
+                cracked.update(username=f'{test_pw}')
+                continue
+            # print(f"Username: {username}, user's encrypted pw: {user['hashPW']}, test's pw: {test_pw}")
+    return cracked
 
 
 def compare_passwords(dictionary, db):
@@ -69,8 +79,7 @@ def compare_passwords(dictionary, db):
         for cred in dictionary:
             username = cred
             hashed_pw = dictionary[cred]
-            h = crypt.crypt("123456", crypt.METHOD_MD5)
-            test_pw = h.hexdigest()
+            test_pw = ""
             if test_pw == hashed_pw:
                 result_dict.update({f'{username}': f'{test_pw}'})
 
@@ -82,7 +91,10 @@ if __name__ == '__main__':
     # print(f"Enter password file name:")
     # response = input();
     shadow_dict = store_shadow_file_locally("Assignment 1 for CS 4351/Problem 1/shadowfile.txt")
-    # common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
-    # common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
+    common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
+    common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
     # result = compare_passwords(shadow_dict, common_db)
-    crack_passwords(shadow_dict)
+    result_crack1 = crack_passwords(shadow_dict, common_db)
+    result_crack2 = crack_passwords(shadow_dict, common2_db)
+    print(result_crack1)
+    print(result_crack2)
