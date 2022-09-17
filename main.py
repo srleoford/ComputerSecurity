@@ -58,18 +58,32 @@ def crack_passwords(dictionary, test_db):
     for test_pw in test_db:
         # Each account is a dictionary with each attribute for each account (username, encrypted PW, etc.)
         # Take encrypted password and split it into type, salt, and hash for use into the MD5 encryption
+        # If the account has been hacked (is in 'cracked' dictionary), get to the next OR if all the passwords
+        # are cracked (as many items in 'cracked' as in shadow file) return 'cracked'.
+
+        # If all the passwords were cracked, return 'cracked'.
+        if len(cracked) == len(dictionary):
+            print(f"Entire file is cracked!!! I'm done.")
+            return cracked
+
         for account in dictionary:
             user = dictionary[account]
             username = user['username']
-            tsh_format = re.split(r'\$', user['hashPW'])
-            password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
-            test_hash = md5_crypt.using(salt=password_info['salt']).hash(test_pw)
-            # print(f"Testing password {test_pw} on {username} by comparing {test_hash} and {user['hashPW']}...")
-            if test_hash == user['hashPW']:
-                print(f"Account cracked! {username}:{test_pw}")
-                cracked.update(username=f'{test_pw}')
+
+            # If user hasn't been cracked, try to crack it.
+            if cracked.get('username') is None:
+                tsh_format = re.split(r'\$', user['hashPW'])
+                password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
+                test_hash = md5_crypt.using(salt=password_info['salt']).hash(test_pw)
+                # print(f"Testing password {test_pw} on {username} by comparing {test_hash} and {user['hashPW']}...")
+                if test_hash == user['hashPW']:
+                    print(f"Account cracked! {username}:{test_pw}")
+                    cracked.update(username=f'{test_pw}')
+                    continue
+                # print(f"Username: {username}, user's encrypted pw: {user['hashPW']}, test's pw: {test_pw}")
+            else:
+                print(f"{username} is already cracked. Let's try the next one...")
                 continue
-            # print(f"Username: {username}, user's encrypted pw: {user['hashPW']}, test's pw: {test_pw}")
     return cracked
 
 
@@ -95,6 +109,10 @@ if __name__ == '__main__':
     common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
     # result = compare_passwords(shadow_dict, common_db)
     result_crack1 = crack_passwords(shadow_dict, common_db)
-    result_crack2 = crack_passwords(shadow_dict, common2_db)
+    # result_crack2 = crack_passwords(shadow_dict, common2_db)
     print(result_crack1)
-    print(result_crack2)
+    # print(result_crack2)
+    # test = {'elf': "Elrond"}
+    # nottest = {'elf': "Galadriel"}
+    # print(len(test) == len(nottest))
+
