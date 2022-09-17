@@ -2,6 +2,7 @@
 import os
 import re
 from passlib.hash import md5_crypt
+from collections import OrderedDict
 
 
 # Idea: Read each line of the file and put it in a dictionary and check
@@ -23,8 +24,10 @@ def store_shadow_file_locally(filename):
         # Check to see if there is a valid user, then split and insert into dictionary
         if line.__contains__('crack'):
             each_text_line = re.split(r':', line)
-            pw_dictionary.update({f"user{count}": {"username": each_text_line[0], "hashPW": each_text_line[1], "last_PW_changed": each_text_line[2],
-                                  "min_PW_age": each_text_line[3], "max_PW_age": each_text_line[4], "warn_period": each_text_line[5]}})
+            pw_dictionary.update({f"user{count}": {"username": each_text_line[0], "hashPW": each_text_line[1],
+                                                   "last_PW_changed": each_text_line[2],
+                                                   "min_PW_age": each_text_line[3], "max_PW_age": each_text_line[4],
+                                                   "warn_period": each_text_line[5]}})
             count += 1
     return pw_dictionary
 
@@ -47,6 +50,7 @@ def store_passwords(filename):
         passwd = re.split(r'\n', line)
         pw_list.append(passwd[0])
     return pw_list
+
 
 # Idea: Grab each test password and compare it against the password file.
 # If a password was cracked, remove it from the password file and store it
@@ -71,33 +75,21 @@ def crack_passwords(dictionary, test_db):
             username = user['username']
 
             # If user hasn't been cracked, try to crack it.
-            if cracked.get('username') is None:
+            if cracked.get(username) is None:
                 tsh_format = re.split(r'\$', user['hashPW'])
                 password_info = {'type': tsh_format[1], 'salt': tsh_format[2], 'hash': tsh_format[3]}
                 test_hash = md5_crypt.using(salt=password_info['salt']).hash(test_pw)
                 # print(f"Testing password {test_pw} on {username} by comparing {test_hash} and {user['hashPW']}...")
                 if test_hash == user['hashPW']:
                     print(f"Account cracked! {username}:{test_pw}")
-                    cracked.update(username=f'{test_pw}')
+                    cracked.update({f'{username}': f'{test_pw}'})
+                    # print(f"Passwords cracked so far...{cracked}")
                     continue
                 # print(f"Username: {username}, user's encrypted pw: {user['hashPW']}, test's pw: {test_pw}")
             else:
-                print(f"{username} is already cracked. Let's try the next one...")
+                # print(f"{username} is already cracked. Let's try the next one...")
                 continue
     return cracked
-
-
-def compare_passwords(dictionary, db):
-    result_dict = dict()
-    for password in db:
-        for cred in dictionary:
-            username = cred
-            hashed_pw = dictionary[cred]
-            test_pw = ""
-            if test_pw == hashed_pw:
-                result_dict.update({f'{username}': f'{test_pw}'})
-
-    return result_dict
 
 
 if __name__ == '__main__':
@@ -108,11 +100,12 @@ if __name__ == '__main__':
     common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
     common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
     # result = compare_passwords(shadow_dict, common_db)
-    result_crack1 = crack_passwords(shadow_dict, common_db)
-    # result_crack2 = crack_passwords(shadow_dict, common2_db)
-    print(result_crack1)
+    crackedPW = crack_passwords(shadow_dict, common_db)
+    crackedPW.update(crack_passwords(shadow_dict, common2_db))
+    # print(result_crack1)
     # print(result_crack2)
     # test = {'elf': "Elrond"}
-    # nottest = {'elf': "Galadriel"}
-    # print(len(test) == len(nottest))
-
+    # nottest = {'elf1': "Galadriel", 'elf3': 'Legolas'}
+    # nottest.update(test)
+    result = OrderedDict(sorted(crackedPW.items()))
+    print(result)
