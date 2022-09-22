@@ -256,7 +256,6 @@ def crack_salted_passwords(test_words, salted_table):
 
     # Idea: Compare each 'test_words' against 'unsalted_table' and handle accordingly
     for passwd in test_words:
-        print(f"This is the password to test: {passwd}")
         userCount = 1
 
         # Compare every 'pw_hash' to every 'user' in the 'unsalted_table'
