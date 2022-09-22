@@ -50,6 +50,7 @@ def store_passwords(filename):
         # Check to see if there is a valid user, then split and insert into dictionary
         passwd = re.split(r'\n', line)
         pw_list.append(passwd[0])
+
     return pw_list
 
 
@@ -115,6 +116,7 @@ def store_words(filename):
         passwd = re.split(r'\n', line)
         if len(passwd[0]) > 5:
             pw_list.append(passwd[0])
+
     return pw_list
 
 
@@ -212,11 +214,11 @@ def crack_unsalted_passwords(test_words, unsalted_table):
 
         # Compare every 'pw_hash' to every 'user' in the 'unsalted_table'
         for user in unsalted_table:
-            print(f"Testing {passwd} against {f'user{userCount}'}")
+            # print(f"Testing {passwd} against {f'user{userCount}'}")
             # If 'user' is already in 'cracked_users', increment 'userCount' and continue.
             # Else, calculate the next 'pw_hash' to compare
             if cracked_users.get(f'user{userCount}') is not None:
-                print(f"user{userCount} has already been cracked...")
+                # print(f"user{userCount} has already been cracked...")
                 userCount += 1
                 continue
 
@@ -254,6 +256,7 @@ def crack_salted_passwords(test_words, salted_table):
 
     # Idea: Compare each 'test_words' against 'unsalted_table' and handle accordingly
     for passwd in test_words:
+        print(f"This is the password to test: {passwd}")
         userCount = 1
 
         # Compare every 'pw_hash' to every 'user' in the 'unsalted_table'
@@ -261,7 +264,7 @@ def crack_salted_passwords(test_words, salted_table):
             # If 'user' is already in 'cracked_users', increment 'userCount' and continue.
             # Else, calculate the next 'pw_hash' to compare
             if cracked_users.get(f'user{userCount}') is not None:
-                print(f"user{userCount} has already been cracked...")
+                # print(f"user{userCount} has already been cracked...")
                 userCount += 1
                 continue
 
@@ -273,7 +276,6 @@ def crack_salted_passwords(test_words, salted_table):
             if user[f'user{userCount}']['hash'] == pw_hash:
                 print(f"User cracked! {f'user{userCount}'}:{passwd}")
                 cracked_users.update({f'user{userCount}': passwd})
-
                 # If so, return cracked_users. Else, reset the 'userCount'
                 if len(cracked_users) == len(salted_table):
                     print("All the users have been cracked form unsalted table!!!")
@@ -297,42 +299,42 @@ if __name__ == '__main__':
     # print(f"Enter password file name:")
     # response = input();
 
-    # This is the section for problem 1
-    # From response, read in the shadow file and then read in from stored command password files
-    shadow_dict = store_shadow_file_locally("Assignment 1 for CS 4351/Problem 1/shadowfile.txt")
-    common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
-    common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
-
-    # Brute force attack on the shadow file. Returns dictionary of resulting accounts hacked
-    crackedPW = crack_passwords(shadow_dict, common_db)
-    crackedPW.update(crack_passwords(shadow_dict, common2_db))
-
-    # Print result
-    result_problem1 = OrderedDict(sorted(crackedPW.items()))
-    print(f"The result of problem 1: ")
-    print(f"List of accounts:")
-    for user in result_problem1:
-        print(user)
-    print(f"Number of accounts: {len(result_problem1)}")
+    # # This is the section for problem 1
+    # # From response, read in the shadow file and then read in from stored command password files
+    # shadow_dict = store_shadow_file_locally("Assignment 1 for CS 4351/Problem 1/shadowfile.txt")
+    # common_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswdFile.txt")
+    # common2_db = store_passwords("Assignment 1 for CS 4351/Problem 1/commonPasswordFile2.txt")
+    #
+    # # Brute force attack on the shadow file. Returns dictionary of resulting accounts hacked
+    # crackedPW = crack_passwords(shadow_dict, common_db)
+    # crackedPW.update(crack_passwords(shadow_dict, common2_db))
+    #
+    # # Print result
+    # result_problem1 = OrderedDict(sorted(crackedPW.items()))
+    # print(f"The result of problem 1: ")
+    # print(f"List of accounts:")
+    # for user in result_problem1:
+    #     print(user)
+    # print(f"Number of accounts: {len(result_problem1)}")
 
     # Here's brute force attempt for problem 2
     words = store_words("Assignment 1 for CS 4351/Problem 2/words.txt")
-    unsaltedUsers = store_unsalted_table("Assignment 1 for CS 4351/Problem 2/UnsaltedPassTable.txt")
+    # unsaltedUsers = store_unsalted_table("Assignment 1 for CS 4351/Problem 2/UnsaltedPassTable.txt")
     saltedUsers = store_salted_table("Assignment 1 for CS 4351/Problem 2/SaltedPassTable.txt")
     testing_passwords = create_passwords(words)
-    unsalted_result = crack_unsalted_passwords(testing_passwords, unsaltedUsers)
+    # unsalted_result = crack_unsalted_passwords(testing_passwords, unsaltedUsers)
     salted_result = crack_salted_passwords(testing_passwords, saltedUsers)
 
     # Print result
-    result_problem2a = OrderedDict(sorted(unsalted_result.items()))
-    print(f"The result of problem 1: ")
-    print(f"List of accounts:")
-    for user in result_problem2a:
-        print(user)
-    print(f"Number of accounts: {len(result_problem2a)}")
+    # result_problem2a = OrderedDict(sorted(unsalted_result.items()))
+    # print(f"The result of problem 2a: ")
+    # print(f"List of accounts:")
+    # for user in result_problem2a:
+    #     print(f"Account: {user}, Password: {user.values()}")
+    # print(f"Number of accounts: {len(result_problem2a)}")
 
     result_problem2b = OrderedDict(sorted(salted_result.items()))
-    print(f"The result of problem 1: ")
+    print(f"The result of problem 2b: ")
     print(f"List of accounts:")
     for user in result_problem2b:
         print(user)
