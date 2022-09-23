@@ -138,7 +138,7 @@ def create_passwords(stored_words):
     # Stores just numbers into the dictionary
     for i in range(0, 100000000):
         if 11 > len(str(i)) > 5:
-            testing_number_passwords.update({f"password{count}": str(i).zfill(8)})
+            testing_number_passwords.update({f"password{count}": str(i).zfill(1)})
             count += 1
     createdPWDS.update(testing_number_passwords)
 
@@ -209,7 +209,7 @@ def crack_unsalted_passwords(test_words, unsalted_table):
     pwdCount = 1
 
     # Idea: Compare each 'test_words' against 'unsalted_table' and handle accordingly
-    for passwd in test_words:
+    for key, passwd in test_words.items():
         userCount = 1
 
         # Compare every 'pw_hash' to every 'user' in the 'unsalted_table'
@@ -255,7 +255,7 @@ def crack_salted_passwords(test_words, salted_table):
     pwdCount = 1
 
     # Idea: Compare each 'test_words' against 'unsalted_table' and handle accordingly
-    for passwd in test_words:
+    for key, passwd in test_words.items():
         userCount = 1
 
         # Compare every 'pw_hash' to every 'user' in the 'unsalted_table'
